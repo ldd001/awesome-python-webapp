@@ -24,7 +24,7 @@ async def create_pool(loop , **kw):
 		password=kw['password'],
 		db=kw['db'],
 		charset=kw.get('charset','utf8'),
-		atuocommit=kw.get('atuocommit',True),
+		autocommit=kw.get('autocommit',True),
 		maxsize=kw.get('maxsize',10),
 		minsize=kw.get('minsize',1),
 		loop=loop
@@ -43,19 +43,19 @@ async def select(sql , args ,size=None):
 		logging.info('rows returned %s' % len(rs))
 		return rs
 
-async def execute(sql , args , atuocommit=True):
+async def execute(sql , args , autocommit=True):
 	log(sql,args)
 	async with __pool.get() as conn:
-		if not atuocommit:
+		if not autocommit:
 			await conn.begin()
 		try:
 			async with conn.cursor(aiomysql.DictCursor) as cur:
 				await cur.execute(sql.replace('?' , '%s') , args)
-				affected = cur.rowcount()
-			if not atuocommit:
+				affected = cur.rowcount
+			if not autocommit:
 				await conn.commit()
 		except BaseException as e:
-			if not atuocommit:
+			if not autocommit:
 				conn.rollback()
 			raise
 		return affected
