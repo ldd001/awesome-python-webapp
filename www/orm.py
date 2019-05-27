@@ -127,24 +127,24 @@ class ModelMetaclass(type):
 				if v.primary_key:
 					#找到主键
 					if primarykey:
-						raise Exception('Two primary key for field : %s' % k)
+						raise Exception('Two primary key for fields : %s' % k)
 					primarykey = k 
 				else:
-					field.append(k)
+					fields.append(k)
 		if not primarykey:
 			raise Exception('Not Found primary key')
 		#由于实例变量会覆盖类变量，为了防止变量冲突报错，把atttrs中mappings中有的pop掉 删掉
 		for k in mappings.keys():
 			attrs.pop(k)
-		escaped_field = list(map(lambda f : '`%s`' % f , field)) 
+		escaped_field = list(map(lambda f : '`%s`' % f , fields)) 
 		attrs['__mappings__'] = mappings # 保存属性和列的映射关系
 		attrs['__table__'] = tableName
 		attrs['__primary_key__'] = primarykey # 主键属性名
 		attrs['__fields__'] = fields # 除主键外的属性名
 		attrs['__select__'] = 'select `%s`, %s from  `%s`' % (primarykey , ',  '.join(escaped_field), tableName)
 		attrs['__insert__'] = 'insert into `%s` (%s , `%s`) values (%s)' % (tableName , ',  '.join(escaped_field), primarykey , create_args_string(len(escaped_field) + 1))
-		attrs['__update__'] = 'update `%s` set %s where `%s` = ?' % (tableName, ', '.join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primaryKey)
-		attrs['__delete__'] = 'delete from `%s` where `%s`=?' % (tableName, primaryKey)
+		attrs['__update__'] = 'update `%s` set %s where `%s` = ?' % (tableName, ', '.join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primarykey)
+		attrs['__delete__'] = 'delete from `%s` where `%s`=?' % (tableName, primarykey)
 		return type.__new__(cls, name, bases, attrs)
 
 class Model(dict, metaclass=ModelMetaclass): 
